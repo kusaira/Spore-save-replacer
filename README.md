@@ -1,5 +1,7 @@
 # Spore Save Replacer
 
+Warning: this project was vibe-coded, so the code may be a little rough around the edges.
+
 Releases: [https://github.com/kusaira/Spore-save-replacer/releases](https://github.com/kusaira/Spore-save-replacer/releases)
 
 Download the latest beta build here:
