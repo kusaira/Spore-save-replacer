@@ -5,7 +5,7 @@ Warning: this project was vibe-coded, so the code may be a little rough around t
 Releases: [https://github.com/kusaira/Spore-save-replacer/releases](https://github.com/kusaira/Spore-save-replacer/releases)
 
 Download the latest beta build here:
-[spore_replacer.exe](https://github.com/kusaira/Spore-save-replacer/releases/download/v0.3.0-beta/spore_replacer.exe)
+[spore_replacer.exe](https://github.com/kusaira/Spore-save-replacer/releases/download/v1.0.0-beta/spore_replacer.exe)
 
 Simple Windows GUI app built with Python and `tkinter`.
 
@@ -16,6 +16,7 @@ C:\Users\<username>\AppData\Roaming\Spore
 ```
 
 If the destination folder does not exist, the app creates it automatically. If it already exists, its contents are fully replaced by the contents of the local `Spore` folder.
+The main window also has an optional checkbox to clear `My Spore Creations` in `Documents` or `OneDrive\Documents`.
 
 ## Folder Layout
 

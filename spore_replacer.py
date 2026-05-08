@@ -9,7 +9,7 @@ from tkinter import messagebox
 
 
 APP_NAME = "Spore Save Replacer"
-APP_VERSION = "v0.3.0 Beta"
+APP_VERSION = "v1.0.0 Beta"
 LOCAL_SPORE_FOLDER = "Spore"
 SETTINGS_FOLDER = "SporeSaveReplacer"
 SETTINGS_FILE = "settings.json"
@@ -112,6 +112,51 @@ def get_target_spore_folder() -> Path:
     return Path("C:/Users") / username / "AppData" / "Roaming" / "Spore"
 
 
+def get_documents_roots() -> list[Path]:
+    """Return the most likely Documents roots for the current Windows user."""
+    roots: list[Path] = []
+
+    if os.name == "nt":
+        try:
+            import winreg
+
+            with winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER,
+                r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders",
+            ) as key:
+                personal, _ = winreg.QueryValueEx(key, "Personal")
+            roots.append(Path(os.path.expandvars(personal)))
+        except (OSError, ValueError, TypeError):
+            pass
+
+    home = Path.home()
+    roots.extend(
+        [
+            home / "Documents",
+            home / "OneDrive" / "Documents",
+        ]
+    )
+
+    one_drive = os.environ.get("OneDrive")
+    if one_drive:
+        roots.append(Path(one_drive) / "Documents")
+
+    unique_roots: list[Path] = []
+    seen: set[str] = set()
+    for root in roots:
+        resolved = str(root)
+        if resolved not in seen:
+            seen.add(resolved)
+            unique_roots.append(root)
+
+    return unique_roots
+
+
+def get_my_spore_creations_paths() -> list[Path]:
+    """Return the My Spore Creations folders that should be deleted."""
+    return [root / "My Spore Creations" for root in get_documents_roots()]
+
+
 def clear_folder(folder: Path) -> None:
     """Remove all existing items from a folder while keeping the folder itself."""
     for item in folder.iterdir():
@@ -119,6 +164,27 @@ def clear_folder(folder: Path) -> None:
             shutil.rmtree(item)
         else:
             item.unlink()
+
+
+def remove_path(path: Path) -> None:
+    """Delete a file or folder even if some items are read-only."""
+    if path.is_dir() and not path.is_symlink():
+        shutil.rmtree(path, onerror=remove_readonly)
+    else:
+        path.unlink()
+
+
+def remove_readonly(func, path, _exc_info):
+    """Retry removing read-only files during tree deletion."""
+    os.chmod(path, 0o666)
+    func(path)
+
+
+def clear_my_spore_creations() -> None:
+    """Delete both possible My Spore Creations folders if they exist."""
+    for folder in get_my_spore_creations_paths():
+        if folder.exists():
+            remove_path(folder)
 
 
 def copy_spore_folder(source_folder: Path, target_folder: Path) -> None:
@@ -223,7 +289,7 @@ class ConfirmDialog(tk.Toplevel):
 
         impact = tk.Label(
             header,
-            text="YOU WILL LOSE ALL WORLDS AND CREATIONS",
+            text="YOU WILL LOSE ALL PLANETS, CREATIONS, AND SETTINGS",
             bg=DANGER_BG,
             fg="#fee2e2",
             font=BODY_FONT,
@@ -323,11 +389,12 @@ class SporeReplacerApp:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.settings = load_settings()
+        self.clear_creations_var = tk.BooleanVar(value=False)
 
         self.root.title(APP_NAME)
         self.root.configure(bg=WINDOW_BG)
         self.root.resizable(False, False)
-        self.root.minsize(460, 320)
+        self.root.minsize(460, 385)
         apply_window_icon(self.root)
 
         self.build_ui()
@@ -397,6 +464,35 @@ class SporeReplacerApp:
             width=18,
         )
         cancel_button.pack(fill="x")
+
+        options = tk.Frame(card, bg=PANEL_BG)
+        options.pack(fill="x", pady=(16, 0))
+
+        clear_creations = tk.Checkbutton(
+            options,
+            text="Clear My Spore Creations",
+            variable=self.clear_creations_var,
+            bg=PANEL_BG,
+            fg=TEXT_FG,
+            activebackground=PANEL_BG,
+            activeforeground=TEXT_FG,
+            selectcolor=PANEL_BG,
+            font=BODY_FONT,
+            highlightthickness=0,
+            bd=0,
+        )
+        clear_creations.pack(anchor="w")
+
+        option_note = tk.Label(
+            options,
+            text="This deletes the entire folder from Documents or OneDrive Documents if it exists.",
+            bg=PANEL_BG,
+            fg=MUTED_FG,
+            font=BODY_FONT,
+            wraplength=400,
+            justify="left",
+        )
+        option_note.pack(anchor="w", pady=(4, 0))
 
     def center_window(self) -> None:
         self.root.update_idletasks()
@@ -470,6 +566,28 @@ class SporeReplacerApp:
                 f"An unexpected error occurred:\n{error}",
             )
             return
+
+        if self.clear_creations_var.get():
+            try:
+                clear_my_spore_creations()
+            except PermissionError as error:
+                messagebox.showerror(
+                    "Access error",
+                    f"Access denied while clearing My Spore Creations:\n{error}",
+                )
+                return
+            except OSError as error:
+                messagebox.showerror(
+                    "Cleanup error",
+                    f"Could not clear My Spore Creations:\n{error}",
+                )
+                return
+            except Exception as error:
+                messagebox.showerror(
+                    "Unexpected error",
+                    f"An unexpected error occurred while clearing My Spore Creations:\n{error}",
+                )
+                return
 
         messagebox.showinfo("Confirmed", "Confirmed")
 
