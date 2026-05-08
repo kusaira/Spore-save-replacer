@@ -212,12 +212,25 @@ class ConfirmDialog(tk.Toplevel):
 
         warning = tk.Label(
             header,
-            text="THIS WILL OVERWRITE ALL YOUR SAVES",
+            text="THIS WILL DELETE EVERYTHING IN %APPDATA%\\SPORE",
             bg=DANGER_BG,
             fg="#fee2e2",
             font=BODY_FONT,
+            wraplength=360,
+            justify="left",
         )
         warning.pack(anchor="w", pady=(2, 0))
+
+        impact = tk.Label(
+            header,
+            text="YOU WILL LOSE ALL WORLDS AND CREATIONS",
+            bg=DANGER_BG,
+            fg="#fee2e2",
+            font=BODY_FONT,
+            wraplength=360,
+            justify="left",
+        )
+        impact.pack(anchor="w", pady=(2, 0))
 
         panel = tk.Frame(
             shell,
