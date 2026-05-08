@@ -1,5 +1,10 @@
 # Spore Save Replacer
 
+Releases: [https://github.com/kusaira/Spore-save-replacer/releases](https://github.com/kusaira/Spore-save-replacer/releases)
+
+Download the latest beta build here:
+[spore_replacer.exe](https://github.com/kusaira/Spore-save-replacer/releases/download/v0.1.0-beta.1/spore_replacer.exe)
+
 Simple Windows GUI app built with Python and `tkinter`.
 
 It copies everything from a local `Spore` folder next to the app into the current Windows user's roaming Spore folder:
