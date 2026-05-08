@@ -9,9 +9,37 @@ from tkinter import messagebox
 
 
 APP_NAME = "Spore Save Replacer"
+APP_VERSION = "Beta"
 LOCAL_SPORE_FOLDER = "Spore"
 SETTINGS_FOLDER = "SporeSaveReplacer"
 SETTINGS_FILE = "settings.json"
+ICON_FILE = "spore_icon.ico"
+
+WINDOW_BG = "#eef4fb"
+PANEL_BG = "#ffffff"
+HEADER_BG = "#1d4ed8"
+HEADER_FG = "#ffffff"
+TEXT_FG = "#0f172a"
+MUTED_FG = "#5b6472"
+BORDER_FG = "#d9e2ee"
+PRIMARY_BG = "#2563eb"
+PRIMARY_HOVER = "#1d4ed8"
+PRIMARY_ACTIVE = "#1e40af"
+PRIMARY_FG = "#ffffff"
+SECONDARY_BG = "#e2e8f0"
+SECONDARY_HOVER = "#cbd5e1"
+SECONDARY_ACTIVE = "#94a3b8"
+SECONDARY_FG = "#0f172a"
+DANGER_BG = "#dc2626"
+DANGER_HOVER = "#b91c1c"
+DANGER_ACTIVE = "#991b1b"
+DANGER_FG = "#ffffff"
+
+TITLE_FONT = ("Segoe UI", 17, "bold")
+HEADER_FONT = ("Segoe UI", 15, "bold")
+BODY_FONT = ("Segoe UI", 10)
+BODY_BOLD_FONT = ("Segoe UI", 10, "bold")
+BUTTON_FONT = ("Segoe UI", 10, "bold")
 
 
 def get_program_folder() -> Path:
@@ -19,6 +47,24 @@ def get_program_folder() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parent
+
+
+def resource_path(name: str) -> Path:
+    """Resolve a file from either the source folder or the PyInstaller bundle."""
+    bundle_root = Path(getattr(sys, "_MEIPASS", get_program_folder()))
+    return bundle_root / name
+
+
+def apply_window_icon(window: tk.Misc) -> None:
+    """Set the window icon if the icon file is available."""
+    icon_path = resource_path(ICON_FILE)
+    if not icon_path.is_file():
+        return
+
+    try:
+        window.iconbitmap(default=str(icon_path))
+    except tk.TclError:
+        pass
 
 
 def get_settings_path() -> Path:
@@ -92,6 +138,47 @@ def copy_spore_folder(source_folder: Path, target_folder: Path) -> None:
             shutil.copy2(item, destination)
 
 
+def make_button(
+    parent: tk.Misc,
+    text: str,
+    command,
+    *,
+    bg: str,
+    hover_bg: str,
+    active_bg: str,
+    fg: str,
+    width: int = 16,
+) -> tk.Button:
+    """Create a flat button with simple hover feedback."""
+    button = tk.Button(
+        parent,
+        text=text,
+        command=command,
+        width=width,
+        font=BUTTON_FONT,
+        bg=bg,
+        fg=fg,
+        activebackground=active_bg,
+        activeforeground=fg,
+        relief="flat",
+        bd=0,
+        padx=12,
+        pady=9,
+        cursor="hand2",
+        highlightthickness=0,
+    )
+
+    def on_enter(_event):
+        button.configure(bg=hover_bg)
+
+    def on_leave(_event):
+        button.configure(bg=bg)
+
+    button.bind("<Enter>", on_enter)
+    button.bind("<Leave>", on_leave)
+    return button
+
+
 class ConfirmDialog(tk.Toplevel):
     """A small modal confirmation window with a persistent-choice checkbox."""
 
@@ -101,36 +188,87 @@ class ConfirmDialog(tk.Toplevel):
         self.result = False
         self.do_not_ask_again = tk.BooleanVar(value=False)
 
+        self.configure(bg=WINDOW_BG)
         self.title("Warning")
         self.resizable(False, False)
         self.transient(parent)
         self.grab_set()
+        apply_window_icon(self)
 
-        container = tk.Frame(self, padx=18, pady=16)
-        container.pack(fill="both", expand=True)
+        shell = tk.Frame(self, bg=WINDOW_BG)
+        shell.pack(fill="both", expand=True)
 
-        message = tk.Label(
-            container,
-            text="ARE YOU SURE? THIS WILL OVERWRITE ALL YOUR SAVES",
-            wraplength=320,
-            justify="center",
+        header = tk.Frame(shell, bg=DANGER_BG, padx=18, pady=14)
+        header.pack(fill="x")
+
+        title = tk.Label(
+            header,
+            text="ARE YOU SURE?",
+            bg=DANGER_BG,
+            fg=HEADER_FG,
+            font=HEADER_FONT,
         )
-        message.pack(pady=(0, 12))
+        title.pack(anchor="w")
+
+        warning = tk.Label(
+            header,
+            text="THIS WILL OVERWRITE ALL YOUR SAVES",
+            bg=DANGER_BG,
+            fg="#fee2e2",
+            font=BODY_FONT,
+        )
+        warning.pack(anchor="w", pady=(2, 0))
+
+        panel = tk.Frame(
+            shell,
+            bg=PANEL_BG,
+            padx=18,
+            pady=18,
+            highlightbackground=BORDER_FG,
+            highlightthickness=1,
+        )
+        panel.pack(fill="both", expand=True, padx=18, pady=18)
 
         checkbox = tk.Checkbutton(
-            container,
+            panel,
             text="Do not ask again",
             variable=self.do_not_ask_again,
+            bg=PANEL_BG,
+            fg=TEXT_FG,
+            activebackground=PANEL_BG,
+            activeforeground=TEXT_FG,
+            selectcolor=PANEL_BG,
+            font=BODY_FONT,
+            highlightthickness=0,
+            bd=0,
         )
-        checkbox.pack(anchor="w", pady=(0, 14))
+        checkbox.pack(anchor="w", pady=(10, 16))
 
-        buttons = tk.Frame(container)
+        buttons = tk.Frame(panel, bg=PANEL_BG)
         buttons.pack(fill="x")
 
-        no_button = tk.Button(buttons, text="No", width=10, command=self.on_no)
+        no_button = make_button(
+            buttons,
+            "No",
+            self.on_no,
+            bg=SECONDARY_BG,
+            hover_bg=SECONDARY_HOVER,
+            active_bg=SECONDARY_ACTIVE,
+            fg=SECONDARY_FG,
+            width=10,
+        )
         no_button.pack(side="right", padx=(8, 0))
 
-        yes_button = tk.Button(buttons, text="Yes", width=10, command=self.on_yes)
+        yes_button = make_button(
+            buttons,
+            "Yes",
+            self.on_yes,
+            bg=DANGER_BG,
+            hover_bg=DANGER_HOVER,
+            active_bg=DANGER_ACTIVE,
+            fg=DANGER_FG,
+            width=10,
+        )
         yes_button.pack(side="right")
 
         self.protocol("WM_DELETE_WINDOW", self.on_no)
@@ -174,30 +312,78 @@ class SporeReplacerApp:
         self.settings = load_settings()
 
         self.root.title(APP_NAME)
+        self.root.configure(bg=WINDOW_BG)
         self.root.resizable(False, False)
+        self.root.minsize(460, 320)
+        apply_window_icon(self.root)
 
         self.build_ui()
         self.center_window()
 
     def build_ui(self) -> None:
-        frame = tk.Frame(self.root, padx=24, pady=22)
-        frame.pack(fill="both", expand=True)
+        shell = tk.Frame(self.root, bg=WINDOW_BG)
+        shell.pack(fill="both", expand=True)
 
-        replace_button = tk.Button(
-            frame,
-            text="Replace",
-            width=16,
-            command=self.on_replace,
-        )
-        replace_button.pack(pady=(0, 10))
+        header = tk.Frame(shell, bg=HEADER_BG, padx=20, pady=18)
+        header.pack(fill="x")
 
-        cancel_button = tk.Button(
-            frame,
-            text="Cancel",
-            width=16,
-            command=self.root.destroy,
+        title = tk.Label(
+            header,
+            text=APP_NAME,
+            bg=HEADER_BG,
+            fg=HEADER_FG,
+            font=TITLE_FONT,
         )
-        cancel_button.pack()
+        title.pack(anchor="w")
+
+        version = tk.Label(
+            header,
+            text=APP_VERSION,
+            bg=HEADER_BG,
+            fg="#dbeafe",
+            font=BODY_FONT,
+        )
+        version.pack(anchor="w", pady=(2, 0))
+
+        body = tk.Frame(shell, bg=WINDOW_BG, padx=20, pady=20)
+        body.pack(fill="both", expand=True)
+
+        card = tk.Frame(
+            body,
+            bg=PANEL_BG,
+            padx=18,
+            pady=18,
+            highlightbackground=BORDER_FG,
+            highlightthickness=1,
+        )
+        card.pack(fill="both", expand=True)
+
+        button_stack = tk.Frame(card, bg=PANEL_BG)
+        button_stack.pack(fill="both", expand=True)
+
+        replace_button = make_button(
+            button_stack,
+            "Replace",
+            self.on_replace,
+            bg=PRIMARY_BG,
+            hover_bg=PRIMARY_HOVER,
+            active_bg=PRIMARY_ACTIVE,
+            fg=PRIMARY_FG,
+            width=18,
+        )
+        replace_button.pack(fill="x", pady=(0, 12))
+
+        cancel_button = make_button(
+            button_stack,
+            "Cancel",
+            self.root.destroy,
+            bg=SECONDARY_BG,
+            hover_bg=SECONDARY_HOVER,
+            active_bg=SECONDARY_ACTIVE,
+            fg=SECONDARY_FG,
+            width=18,
+        )
+        cancel_button.pack(fill="x")
 
     def center_window(self) -> None:
         self.root.update_idletasks()
@@ -250,6 +436,9 @@ class SporeReplacerApp:
 
         try:
             copy_spore_folder(source_folder, target_folder)
+        except ValueError as error:
+            messagebox.showerror("Copy error", str(error))
+            return
         except PermissionError as error:
             messagebox.showerror(
                 "Access error",

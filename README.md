@@ -22,6 +22,7 @@ Keep a `Spore` folder next to `spore_replacer.py` or the built `.exe`:
 ```text
 program-folder/
   spore_replacer.py
+  spore_icon.ico
   Spore/
     ...
 ```
@@ -54,7 +55,7 @@ python -m pip install pyinstaller
 Build a single-file executable:
 
 ```powershell
-pyinstaller --onefile --windowed --name spore_replacer spore_replacer.py
+pyinstaller --onefile --windowed --icon spore_icon.ico --add-data "spore_icon.ico;." --name spore_replacer spore_replacer.py
 ```
 
 The finished file will be here:
