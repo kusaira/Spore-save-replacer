@@ -1,18 +1,18 @@
 # Spore Save Replacer
 
-Простая программа на Python с графическим интерфейсом `tkinter`.
+Simple Windows GUI app built with Python and `tkinter`.
 
-Она копирует все файлы и папки из локальной папки `Spore`, которая лежит рядом с программой, в папку текущего пользователя Windows:
+It copies everything from a local `Spore` folder next to the app into the current Windows user's roaming Spore folder:
 
 ```text
 C:\Users\<username>\AppData\Roaming\Spore
 ```
 
-Если папки назначения нет, программа создаст ее автоматически. Если папка уже существует, ее содержимое будет заменено содержимым локальной папки `Spore` без дополнительных вопросов.
+If the destination folder does not exist, the app creates it automatically. If it already exists, its contents are fully replaced by the contents of the local `Spore` folder.
 
-## Структура папки
+## Folder Layout
 
-Рядом с `spore_replacer.py` или собранным `.exe` должна лежать папка `Spore`:
+Keep a `Spore` folder next to `spore_replacer.py` or the built `.exe`:
 
 ```text
 program-folder/
@@ -21,7 +21,7 @@ program-folder/
     ...
 ```
 
-После сборки в `.exe` структура должна быть такой:
+After building the executable, use this layout:
 
 ```text
 program-folder/
@@ -30,42 +30,42 @@ program-folder/
     ...
 ```
 
-## Запуск из Python
+## Run from Python
 
-Требуется Python 3.8+.
+Python 3.8+ is required.
 
 ```powershell
 python spore_replacer.py
 ```
 
-## Сборка в .exe через PyInstaller
+## Build a .exe with PyInstaller
 
-Установить PyInstaller:
+Install PyInstaller:
 
 ```powershell
 python -m pip install pyinstaller
 ```
 
-Собрать один `.exe`:
+Build a single-file executable:
 
 ```powershell
 pyinstaller --onefile --windowed --name spore_replacer spore_replacer.py
 ```
 
-Готовый файл будет здесь:
+The finished file will be here:
 
 ```text
 dist\spore_replacer.exe
 ```
 
-Скопируйте папку `Spore` рядом с `dist\spore_replacer.exe`, чтобы программа могла найти файлы для замены.
+Copy the `Spore` folder next to `dist\spore_replacer.exe` so the app can find the save files to replace.
 
-## Настройка "Do not ask again"
+## "Do not ask again"
 
-Если пользователь нажал `Yes` и отметил `Do not ask again`, настройка сохраняется в:
+If the user clicks `Yes` and checks `Do not ask again`, the setting is saved here:
 
 ```text
 C:\Users\<username>\AppData\Roaming\SporeSaveReplacer\settings.json
 ```
 
-При следующих запусках предупреждение будет пропущено.
+On the next launch, the warning dialog is skipped.
