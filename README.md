@@ -3,7 +3,7 @@
 Releases: [https://github.com/kusaira/Spore-save-replacer/releases](https://github.com/kusaira/Spore-save-replacer/releases)
 
 Download the latest beta build here:
-[spore_replacer.exe](https://github.com/kusaira/Spore-save-replacer/releases/download/v0.2.0-beta/spore_replacer.exe)
+[spore_replacer.exe](https://github.com/kusaira/Spore-save-replacer/releases/download/v0.3.0-beta/spore_replacer.exe)
 
 Simple Windows GUI app built with Python and `tkinter`.
 
