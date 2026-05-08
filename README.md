@@ -4,6 +4,8 @@ Warning: this project was vibe-coded, so the code may be a little rough around t
 
 Releases: [https://github.com/kusaira/Spore-save-replacer/releases](https://github.com/kusaira/Spore-save-replacer/releases)
 
+Video demo: [https://youtu.be/jfPTdSFS8dk](https://youtu.be/jfPTdSFS8dk)
+
 Download the latest beta build here:
 [spore_replacer.exe](https://github.com/kusaira/Spore-save-replacer/releases/download/v1.0.0-beta/spore_replacer.exe)
 
