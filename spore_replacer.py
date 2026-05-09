@@ -21,7 +21,7 @@ SPORE_SETUP_CLICKS = (
     (1295, 620),
     (1143, 540),
 )
-AUTO_CLICK_BETWEEN_DELAY_SECONDS = 0.225
+AUTO_CLICK_BETWEEN_DELAY_SECONDS = 0.1
 GLOBAL_HOTKEY_VK_F11 = 0x7A
 HOTKEY_POLL_INTERVAL_MS = 50
 
@@ -262,10 +262,11 @@ def run_spore_setup_clicks() -> None:
     """Click the two Spore creature refresh positions from the reference screenshots."""
     screen_width, screen_height = get_screen_size()
 
-    for reference_x, reference_y in SPORE_SETUP_CLICKS:
+    for index, (reference_x, reference_y) in enumerate(SPORE_SETUP_CLICKS):
         x, y = scale_click_position(reference_x, reference_y, screen_width, screen_height)
         left_click(x, y)
-        time.sleep(AUTO_CLICK_BETWEEN_DELAY_SECONDS)
+        if index < len(SPORE_SETUP_CLICKS) - 1:
+            time.sleep(AUTO_CLICK_BETWEEN_DELAY_SECONDS)
 
 
 def is_global_key_down(vk_code: int) -> bool:
@@ -470,7 +471,7 @@ class SporeReplacerApp:
         self.root.title(APP_NAME)
         self.root.configure(bg=WINDOW_BG)
         self.root.resizable(False, False)
-        self.root.minsize(460, 475)
+        self.root.minsize(460, 430)
         apply_window_icon(self.root)
 
         self.build_ui()
@@ -530,18 +531,6 @@ class SporeReplacerApp:
         )
         replace_button.pack(fill="x", pady=(0, 12))
 
-        auto_click_button = make_button(
-            button_stack,
-            "Auto Click Setup",
-            self.on_auto_click_setup,
-            bg=PRIMARY_BG,
-            hover_bg=PRIMARY_HOVER,
-            active_bg=PRIMARY_ACTIVE,
-            fg=PRIMARY_FG,
-            width=18,
-        )
-        auto_click_button.pack(fill="x", pady=(0, 12))
-
         cancel_button = make_button(
             button_stack,
             "Cancel",
@@ -585,7 +574,7 @@ class SporeReplacerApp:
 
         auto_click_note = tk.Label(
             options,
-            text="Auto Click Setup resets and refreshes the creature selection. F11 starts it from any active window while this app is open.",
+            text="Press F11 from any active window to reset and refresh the creature selection.",
             bg=PANEL_BG,
             fg=MUTED_FG,
             font=BODY_FONT,
@@ -631,22 +620,9 @@ class SporeReplacerApp:
 
         self.replace_saves()
 
-    def on_auto_click_setup(self) -> None:
-        self.start_auto_click_setup(confirm_first=True)
-
-    def start_auto_click_setup(self, *, confirm_first: bool) -> None:
+    def start_auto_click_setup(self) -> None:
         if self.auto_click_running:
             return
-
-        if confirm_first:
-            confirmed = messagebox.askyesno(
-                "Auto Click Setup",
-                "Open Spore on the creature selection screen first.\n\n"
-                "After you click Yes, this app will minimize and run the reset/refresh clicks.",
-            )
-
-            if not confirmed:
-                return
 
         self.auto_click_running = True
         self.root.iconify()
@@ -666,7 +642,7 @@ class SporeReplacerApp:
 
         if f11_is_down and not self.f11_was_down:
             self.f11_was_down = True
-            self.start_auto_click_setup(confirm_first=False)
+            self.start_auto_click_setup()
         elif not f11_is_down:
             self.f11_was_down = False
 

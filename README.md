@@ -20,13 +20,13 @@ C:\Users\<username>\AppData\Roaming\Spore
 If the destination folder does not exist, the app creates it automatically. If it already exists, its contents are fully replaced by the contents of the local `Spore` folder.
 The main window also has an optional checkbox to clear `My Spore Creations` in `Documents` or `OneDrive\Documents`.
 
-## Auto Click Setup
+## Auto Click Hotkey
 
-The `Auto Click Setup` button helps reset and refresh the creature selection so you can quickly look for the creature you need during a run setup.
+Press `F11` to reset and refresh the creature selection so you can quickly look for the creature you need during a run setup.
 
 It performs two left-clicks from a 1920x1080 reference screen and scales them to your current resolution. Open Spore on the correct creature selection/setup screen before using it.
 
-While the app is running, pressing `F11` from any active window starts the same auto-click sequence without the confirmation popup.
+While the app is running, pressing `F11` from any active window starts the same auto-click sequence.
 
 ## Folder Layout
 
