@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import sys
+import time
 import tkinter as tk
 from pathlib import Path
 from tkinter import messagebox
@@ -14,6 +15,15 @@ LOCAL_SPORE_FOLDER = "Spore"
 SETTINGS_FOLDER = "SporeSaveReplacer"
 SETTINGS_FILE = "settings.json"
 ICON_FILE = "spore_icon.ico"
+CLICK_REFERENCE_WIDTH = 1920
+CLICK_REFERENCE_HEIGHT = 1080
+SPORE_SETUP_CLICKS = (
+    (1295, 620),
+    (1143, 540),
+)
+AUTO_CLICK_BETWEEN_DELAY_SECONDS = 0.225
+GLOBAL_HOTKEY_VK_F11 = 0x7A
+HOTKEY_POLL_INTERVAL_MS = 50
 
 WINDOW_BG = "#eef4fb"
 PANEL_BG = "#ffffff"
@@ -204,6 +214,70 @@ def copy_spore_folder(source_folder: Path, target_folder: Path) -> None:
             shutil.copy2(item, destination)
 
 
+def get_screen_size() -> tuple[int, int]:
+    """Return the primary monitor size in pixels."""
+    if os.name != "nt":
+        raise RuntimeError("Auto-click is only supported on Windows.")
+
+    import ctypes
+
+    user32 = ctypes.windll.user32
+    width = user32.GetSystemMetrics(0)
+    height = user32.GetSystemMetrics(1)
+
+    if width <= 0 or height <= 0:
+        raise RuntimeError("Could not detect the screen size.")
+
+    return width, height
+
+
+def scale_click_position(x: int, y: int, screen_width: int, screen_height: int) -> tuple[int, int]:
+    """Scale a 1920x1080 reference click position to the current screen."""
+    scaled_x = round((x / CLICK_REFERENCE_WIDTH) * screen_width)
+    scaled_y = round((y / CLICK_REFERENCE_HEIGHT) * screen_height)
+    return scaled_x, scaled_y
+
+
+def left_click(x: int, y: int) -> None:
+    """Move the cursor to a screen position and perform one left mouse click."""
+    if os.name != "nt":
+        raise RuntimeError("Auto-click is only supported on Windows.")
+
+    import ctypes
+
+    user32 = ctypes.windll.user32
+    mouse_event_left_down = 0x0002
+    mouse_event_left_up = 0x0004
+
+    if not user32.SetCursorPos(x, y):
+        raise OSError("Could not move the mouse cursor.")
+
+    time.sleep(0.08)
+    user32.mouse_event(mouse_event_left_down, 0, 0, 0, 0)
+    time.sleep(0.05)
+    user32.mouse_event(mouse_event_left_up, 0, 0, 0, 0)
+
+
+def run_spore_setup_clicks() -> None:
+    """Click the two Spore creature refresh positions from the reference screenshots."""
+    screen_width, screen_height = get_screen_size()
+
+    for reference_x, reference_y in SPORE_SETUP_CLICKS:
+        x, y = scale_click_position(reference_x, reference_y, screen_width, screen_height)
+        left_click(x, y)
+        time.sleep(AUTO_CLICK_BETWEEN_DELAY_SECONDS)
+
+
+def is_global_key_down(vk_code: int) -> bool:
+    """Return whether a virtual key is currently pressed anywhere in Windows."""
+    if os.name != "nt":
+        return False
+
+    import ctypes
+
+    return bool(ctypes.windll.user32.GetAsyncKeyState(vk_code) & 0x8000)
+
+
 def make_button(
     parent: tk.Misc,
     text: str,
@@ -390,15 +464,18 @@ class SporeReplacerApp:
         self.root = root
         self.settings = load_settings()
         self.clear_creations_var = tk.BooleanVar(value=False)
+        self.f11_was_down = False
+        self.auto_click_running = False
 
         self.root.title(APP_NAME)
         self.root.configure(bg=WINDOW_BG)
         self.root.resizable(False, False)
-        self.root.minsize(460, 385)
+        self.root.minsize(460, 475)
         apply_window_icon(self.root)
 
         self.build_ui()
         self.center_window()
+        self.poll_global_hotkey()
 
     def build_ui(self) -> None:
         shell = tk.Frame(self.root, bg=WINDOW_BG)
@@ -453,6 +530,18 @@ class SporeReplacerApp:
         )
         replace_button.pack(fill="x", pady=(0, 12))
 
+        auto_click_button = make_button(
+            button_stack,
+            "Auto Click Setup",
+            self.on_auto_click_setup,
+            bg=PRIMARY_BG,
+            hover_bg=PRIMARY_HOVER,
+            active_bg=PRIMARY_ACTIVE,
+            fg=PRIMARY_FG,
+            width=18,
+        )
+        auto_click_button.pack(fill="x", pady=(0, 12))
+
         cancel_button = make_button(
             button_stack,
             "Cancel",
@@ -494,6 +583,17 @@ class SporeReplacerApp:
         )
         option_note.pack(anchor="w", pady=(4, 0))
 
+        auto_click_note = tk.Label(
+            options,
+            text="Auto Click Setup resets and refreshes the creature selection. F11 starts it from any active window while this app is open.",
+            bg=PANEL_BG,
+            fg=MUTED_FG,
+            font=BODY_FONT,
+            wraplength=400,
+            justify="left",
+        )
+        auto_click_note.pack(anchor="w", pady=(10, 0))
+
     def center_window(self) -> None:
         self.root.update_idletasks()
 
@@ -530,6 +630,47 @@ class SporeReplacerApp:
                     )
 
         self.replace_saves()
+
+    def on_auto_click_setup(self) -> None:
+        self.start_auto_click_setup(confirm_first=True)
+
+    def start_auto_click_setup(self, *, confirm_first: bool) -> None:
+        if self.auto_click_running:
+            return
+
+        if confirm_first:
+            confirmed = messagebox.askyesno(
+                "Auto Click Setup",
+                "Open Spore on the creature selection screen first.\n\n"
+                "After you click Yes, this app will minimize and run the reset/refresh clicks.",
+            )
+
+            if not confirmed:
+                return
+
+        self.auto_click_running = True
+        self.root.iconify()
+        self.root.update_idletasks()
+
+        try:
+            run_spore_setup_clicks()
+        except RuntimeError as error:
+            messagebox.showerror("Auto click error", str(error))
+        except OSError as error:
+            messagebox.showerror("Auto click error", f"Could not perform auto-click:\n{error}")
+        finally:
+            self.auto_click_running = False
+
+    def poll_global_hotkey(self) -> None:
+        f11_is_down = is_global_key_down(GLOBAL_HOTKEY_VK_F11)
+
+        if f11_is_down and not self.f11_was_down:
+            self.f11_was_down = True
+            self.start_auto_click_setup(confirm_first=False)
+        elif not f11_is_down:
+            self.f11_was_down = False
+
+        self.root.after(HOTKEY_POLL_INTERVAL_MS, self.poll_global_hotkey)
 
     def replace_saves(self) -> None:
         program_folder = get_program_folder()
