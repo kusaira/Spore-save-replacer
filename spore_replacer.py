@@ -10,7 +10,7 @@ from tkinter import messagebox
 
 
 APP_NAME = "Spore Save Replacer"
-APP_VERSION = "v1.1.0 Beta"
+APP_VERSION = "v1.1.1 Beta"
 LOCAL_SPORE_FOLDER = "Spore"
 SETTINGS_FOLDER = "SporeSaveReplacer"
 SETTINGS_FILE = "settings.json"
@@ -625,7 +625,6 @@ class SporeReplacerApp:
             return
 
         self.auto_click_running = True
-        self.root.iconify()
         self.root.update_idletasks()
 
         try:
