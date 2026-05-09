@@ -10,7 +10,7 @@ from tkinter import messagebox
 
 
 APP_NAME = "Spore Save Replacer"
-APP_VERSION = "v1.0.0 Beta"
+APP_VERSION = "v1.1.0 Beta"
 LOCAL_SPORE_FOLDER = "Spore"
 SETTINGS_FOLDER = "SporeSaveReplacer"
 SETTINGS_FILE = "settings.json"
