@@ -7,7 +7,7 @@ Releases: [https://github.com/kusaira/Spore-save-replacer/releases](https://gith
 Video demo: [https://youtu.be/jfPTdSFS8dk](https://youtu.be/jfPTdSFS8dk)
 
 Download the latest beta build here:
-[spore_replacer.exe](https://github.com/kusaira/Spore-save-replacer/releases/download/v1.1.1-beta/spore_replacer.exe)
+[spore_replacer.exe](https://github.com/kusaira/Spore-save-replacer/releases/download/v1.2.0-beta/spore_replacer.exe)
 
 Simple Windows GUI app built with Python and `tkinter`.
 
@@ -22,11 +22,11 @@ The main window also has an optional checkbox to clear `My Spore Creations` in `
 
 ## Auto Click Hotkey
 
-Press `F11` to reset and refresh the creature selection so you can quickly look for the creature you need during a run setup.
+Press `F10` to reset and refresh the creature selection so you can quickly look for the creature you need during a run setup.
 
 It performs two left-clicks from a 1920x1080 reference screen and scales them to your current resolution. Open Spore on the correct creature selection/setup screen before using it.
 
-While the app is running, pressing `F11` from any active window starts the same auto-click sequence.
+While the app is running, pressing `F10` from any active window starts the same auto-click sequence.
 
 ## Folder Layout
 

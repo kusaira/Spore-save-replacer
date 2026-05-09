@@ -10,7 +10,7 @@ from tkinter import messagebox
 
 
 APP_NAME = "Spore Save Replacer"
-APP_VERSION = "v1.1.1 Beta"
+APP_VERSION = "v1.2.0 Beta"
 LOCAL_SPORE_FOLDER = "Spore"
 SETTINGS_FOLDER = "SporeSaveReplacer"
 SETTINGS_FILE = "settings.json"
@@ -21,8 +21,8 @@ SPORE_SETUP_CLICKS = (
     (1295, 620),
     (1143, 540),
 )
-AUTO_CLICK_BETWEEN_DELAY_SECONDS = 0.1
-GLOBAL_HOTKEY_VK_F11 = 0x7A
+AUTO_CLICK_BETWEEN_DELAY_SECONDS = 0.2
+GLOBAL_HOTKEY_VK_F10 = 0x79
 HOTKEY_POLL_INTERVAL_MS = 50
 
 WINDOW_BG = "#eef4fb"
@@ -252,9 +252,7 @@ def left_click(x: int, y: int) -> None:
     if not user32.SetCursorPos(x, y):
         raise OSError("Could not move the mouse cursor.")
 
-    time.sleep(0.08)
     user32.mouse_event(mouse_event_left_down, 0, 0, 0, 0)
-    time.sleep(0.05)
     user32.mouse_event(mouse_event_left_up, 0, 0, 0, 0)
 
 
@@ -465,7 +463,6 @@ class SporeReplacerApp:
         self.root = root
         self.settings = load_settings()
         self.clear_creations_var = tk.BooleanVar(value=False)
-        self.f11_was_down = False
         self.auto_click_running = False
 
         self.root.title(APP_NAME)
@@ -574,7 +571,7 @@ class SporeReplacerApp:
 
         auto_click_note = tk.Label(
             options,
-            text="Press F11 from any active window to reset and refresh the creature selection.",
+            text="Press F10 from any active window to reset and refresh the creature selection.",
             bg=PANEL_BG,
             fg=MUTED_FG,
             font=BODY_FONT,
@@ -637,13 +634,10 @@ class SporeReplacerApp:
             self.auto_click_running = False
 
     def poll_global_hotkey(self) -> None:
-        f11_is_down = is_global_key_down(GLOBAL_HOTKEY_VK_F11)
+        f10_is_down = is_global_key_down(GLOBAL_HOTKEY_VK_F10)
 
-        if f11_is_down and not self.f11_was_down:
-            self.f11_was_down = True
+        if f10_is_down:
             self.start_auto_click_setup()
-        elif not f11_is_down:
-            self.f11_was_down = False
 
         self.root.after(HOTKEY_POLL_INTERVAL_MS, self.poll_global_hotkey)
 
